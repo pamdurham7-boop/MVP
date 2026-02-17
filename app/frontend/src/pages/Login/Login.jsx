@@ -9,9 +9,9 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [socket, setSocket] = useState(null);
+  const [error, setError] = useState(""); // ✅ new error state
 
   useEffect(() => {
-    // Connect WebSocket on component mount
     const ws = new WebSocket(
       window.location.hostname === "localhost"
         ? "ws://localhost:8081"
@@ -26,20 +26,21 @@ export default function Login() {
     ws.onmessage = (event) => {
       try {
         const response = JSON.parse(event.data);
+
         if (response.status === "success") {
           localStorage.setItem("token", response.id);
           localStorage.setItem("user", JSON.stringify(response));
           navigate("/");
         } else {
-          alert(response.message || "Login failed");
+          setError(response.message || "Invalid email or password");
         }
       } catch (e) {
-        console.error("Error parsing response:", e);
+        setError("Unexpected server response");
       }
     };
 
     ws.onerror = () => {
-      alert("WebSocket error");
+      setError("Connection error. Please try again.");
     };
 
     return () => {
@@ -48,15 +49,22 @@ export default function Login() {
   }, [navigate]);
 
   const handleLogin = () => {
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
     if (socket && socket.readyState === WebSocket.OPEN) {
-      const message = {
-        action: "login",
-        email,
-        password,
-      };
-      socket.send(JSON.stringify(message));
+      setError(""); // clear old error
+      socket.send(
+        JSON.stringify({
+          action: "login",
+          email,
+          password,
+        })
+      );
     } else {
-      alert("Connection not ready, please wait...");
+      setError("Connection not ready, please wait...");
     }
   };
 
@@ -70,10 +78,23 @@ export default function Login() {
       >
         <h2>Sign in</h2>
 
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        {/* Remember Me */}
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        {/* ✅ ERROR MESSAGE */}
+        {error && <div className="login-error">{error}</div>}
+
         <div className="remember-container">
           <label className="remember-label">
             <input
@@ -85,9 +106,10 @@ export default function Login() {
           </label>
         </div>
 
-        <button className="apple-btn" onClick={handleLogin}>Continue</button>
+        <button className="apple-btn" onClick={handleLogin}>
+          Continue
+        </button>
 
-        {/* New User */}
         <p className="new-user">
           New user?{" "}
           <span onClick={() => navigate("/new")}>
