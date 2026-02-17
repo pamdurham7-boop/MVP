@@ -1,0 +1,107 @@
+/* ===== GLOBAL ===== */
+
+.home {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  background: linear-gradient(-45deg, #0f0f0f, #111827, #0f172a, #000);
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
+  color: white;
+  font-family: "Inter", sans-serif;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===== SECTIONS ===== */
+
+section {
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* ===== PARALLAX ===== */
+
+.parallax {
+  background-image: "./img2.jpg";
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+}
+
+.parallax2 {
+  background-image: "./img2.´jpg";
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+}
+
+/* ===== GLASS CARD ===== */
+
+.glass-card {
+  padding: 60px 80px;
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  transition: 0.4s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-10px);
+}
+
+/* ===== HERO TEXT ===== */
+
+h1 {
+  font-size: 3.5rem;
+  letter-spacing: 3px;
+}
+
+h2 {
+  font-size: 2.5rem;
+}
+
+p {
+  opacity: 0.8;
+  margin-top: 20px;
+}
+
+/* ===== BUTTON SECTION ===== */
+
+.buttons-section {
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===== TYPING CURSOR ===== */
+
+.blink {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ===== CURSOR GLOW ===== */
+
+.cursor-glow {
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0,150,255,0.25) 0%, transparent 60%);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}

@@ -1,0 +1,22 @@
+.custom-btn {
+  background: var(--primary);
+  border: none;
+  padding: 15px 25px;
+  border-radius: 30px;
+  font-size: 1rem;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: 0 4px 10px rgba(255, 182, 193, 0.4);
+}
+
+.custom-btn:hover {
+  background: var(--primary-soft);
+  transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+  .custom-btn {
+    width: 100%;
+  }
+}

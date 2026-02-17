@@ -1,0 +1,99 @@
+.login-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.login-card {
+  width: 350px;
+  padding: 50px 40px;
+  border-radius: 20px;
+  background: #111;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  text-align: center;
+  color: white;
+}
+
+.login-card h2 {
+  margin-bottom: 30px;
+  font-weight: 500;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  border: none;
+  background: #1c1c1e;
+  color: white;
+  outline: none;
+}
+
+.apple-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: white;
+  color: black;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.apple-btn:hover {
+  opacity: 0.85;
+}
+
+.back {
+  margin-top: 20px;
+  opacity: 0.6;
+  cursor: pointer;
+  font-size: 14px;
+}
+/* ===== REMEMBER ME ===== */
+
+.remember-container {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.remember-label input {
+  accent-color: white;
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== NEW USER LINK ===== */
+
+.new-user {
+  margin-top: 18px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.new-user span {
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.new-user span:hover {
+  opacity: 0.7;
+}

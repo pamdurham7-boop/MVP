@@ -1,0 +1,30 @@
+.about-page {
+  height: 100vh;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  background: linear-gradient(-45deg, #0f0f0f, #111827, #0f172a, #000);
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
+  color: white;
+}
+
+.full-section {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  scroll-snap-align: start;
+}
+
+.large {
+  max-width: 700px;
+}
+
+.buttons-section {
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
