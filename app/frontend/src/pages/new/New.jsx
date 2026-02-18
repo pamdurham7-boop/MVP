@@ -5,14 +5,15 @@ import "./New.css";
 
 export default function New() {
   const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [socket, setSocket] = useState(null);
+  const [error, setError] = useState(""); // ✅ error state
 
   useEffect(() => {
-    // Connect WebSocket on component mount
     const ws = new WebSocket(
       window.location.hostname === "localhost"
         ? "ws://localhost:8081"
@@ -27,19 +28,19 @@ export default function New() {
     ws.onmessage = (event) => {
       try {
         const response = JSON.parse(event.data);
+
         if (response.status === "success") {
-          alert("Account created successfully!");
           navigate("/login");
         } else {
-          alert(response.message || "Failed to create account");
+          setError(response.message || "Failed to create account");
         }
       } catch (e) {
-        console.error("Error parsing response:", e);
+        setError("Unexpected server response");
       }
     };
 
     ws.onerror = () => {
-      alert("WebSocket error");
+      setError("Connection error. Please try again.");
     };
 
     return () => {
@@ -48,21 +49,35 @@ export default function New() {
   }, [navigate]);
 
   const handleCreateAccount = () => {
+    // Frontend validation
+    if (!name || !email || !password || !confirmPassword) {
+      setError("Please fill in all fields");
+      return;
+    }
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
     if (socket && socket.readyState === WebSocket.OPEN) {
-      const message = {
-        action: "register",
-        name,
-        email,
-        password,
-      };
-      socket.send(JSON.stringify(message));
+      setError(""); // clear previous error
+
+      socket.send(
+        JSON.stringify({
+          action: "register",
+          name,
+          email,
+          password,
+        })
+      );
     } else {
-      alert("Connection not ready, please wait...");
+      setError("Connection not ready, please wait...");
     }
   };
 
@@ -76,12 +91,40 @@ export default function New() {
       >
         <h2>Create Account</h2>
 
-        <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+        <input
+          type="text"
+          placeholder="Full Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-        <button className="apple-btn" onClick={handleCreateAccount}>Create Account</button>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+
+        {/* ✅ ERROR DISPLAY */}
+        {error && <div className="new-error">{error}</div>}
+
+        <button className="apple-btn" onClick={handleCreateAccount}>
+          Create Account
+        </button>
 
         <p className="back" onClick={() => navigate("/login")}>
           ← Back to Sign in
