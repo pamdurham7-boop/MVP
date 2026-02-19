@@ -1,40 +1,48 @@
+# --- BUILDER STAGE ---
 FROM eclipse-temurin:21-jdk as builder
 
 WORKDIR /build
 
-# Install wget
-RUN apt-get update && apt-get install -y wget
+# 1. Install build tools for JNI (g++ is required)
+RUN apt-get update && apt-get install -y wget g++
 
-# Download dependencies
+# Download dependencies (same as before)
 RUN wget https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar && \
     wget https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.4/Java-WebSocket-1.5.4.jar && \
     wget https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar && \
     wget https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.9/slf4j-simple-2.0.9.jar
 
-# Copy source
+# 2. Copy Java source AND C++ source
 COPY SimpleRestApi.java .
+COPY SecretProvider.cpp .
 
-# Compile properly with ALL dependencies
-RUN javac -cp "mysql-connector-j-8.0.33.jar:Java-WebSocket-1.5.4.jar:slf4j-api-2.0.9.jar:slf4j-simple-2.0.9.jar" -d . SimpleRestApi.java
+# 3. Generate JNI Header and Compile Java
+RUN javac -h . -cp "mysql-connector-j-8.0.33.jar:Java-WebSocket-1.5.4.jar:slf4j-api-2.0.9.jar:slf4j-simple-2.0.9.jar" -d . SimpleRestApi.java
 
-# Create manifest
-RUN echo "Manifest-Version: 1.0" > manifest.txt && \
-    echo "Main-Class: API.SimpleRestApi" >> manifest.txt
+# 4. Compile C++ into a Shared Object (.so)
+# Note: We include the JDK headers for Linux
+RUN g++ -shared -fPIC -o libsecretlib.so \
+    -I"$JAVA_HOME/include" \
+    -I"$JAVA_HOME/include/linux" \
+    SecretProvider.cpp
 
-# Package compiled classes
-RUN jar cfm app.jar manifest.txt API
+# Package JAR
+RUN echo "Main-Class: API.SimpleRestApi" > manifest.txt && \
+    jar cfm app.jar manifest.txt API
 
-# Runtime stage
+# --- RUNTIME STAGE ---
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-COPY --from=builder /build/app.jar .
-COPY --from=builder /build/mysql-connector-j-8.0.33.jar .
-COPY --from=builder /build/Java-WebSocket-1.5.4.jar .
-COPY --from=builder /build/slf4j-api-2.0.9.jar .
-COPY --from=builder /build/slf4j-simple-2.0.9.jar .
+# Copy JAR, Jars, and the NATIVE LIBRARY (.so)
+COPY --from=builder /build/*.jar .
+COPY --from=builder /build/libsecretlib.so .
 
 EXPOSE 8080 8081
 
-ENTRYPOINT ["java", "-cp", "app.jar:mysql-connector-j-8.0.33.jar:Java-WebSocket-1.5.4.jar:slf4j-api-2.0.9.jar:slf4j-simple-2.0.9.jar", "API.SimpleRestApi"]
+# 5. Tell Java where to find the .so file using -Djava.library.path
+ENTRYPOINT ["java", \
+    "-Djava.library.path=.", \
+    "-cp", "app.jar:mysql-connector-j-8.0.33.jar:Java-WebSocket-1.5.4.jar:slf4j-api-2.0.9.jar:slf4j-simple-2.0.9.jar", \
+    "API.SimpleRestApi"]

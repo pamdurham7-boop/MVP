@@ -17,12 +17,18 @@ import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Scanner;
+import static API_PASS.DB_pass;
 
 public class SimpleRestApi {
 
     private static final String DB_URL = "jdbc:mysql://db:3306/mydb";
     private static final String DB_USER = "root";
-    private static final String DB_PASS = "mysqlproject-123";
+    private static final String DB_PASS;
+
+    public void setDB_PASS(pass){
+        this.DB_PASS = finalPassword(pass);
+    }
 
     static class WebSocketHandler extends WebSocketServer {
         private Set<WebSocket> clients = new HashSet<>();
@@ -350,6 +356,10 @@ public class SimpleRestApi {
     }
 
     public static void main(String[] args) throws Exception {
+        Scanner scan = new Scanner(System.in);
+        System.out.println("PUT IN THE PASSWORD TO ACCESS THE DB!")
+        String pass = scan.nextLine();
+        setDB_PASS(pass);
         System.out.println("Starting HTTP...");
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
         httpServer.createContext("/users", new UserHandler());
