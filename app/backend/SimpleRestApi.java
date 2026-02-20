@@ -17,17 +17,21 @@ import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Scanner;
-import static API_PASS.DB_pass;
+import API_PASS.DB_pass;
 
 public class SimpleRestApi {
 
     private static final String DB_URL = "jdbc:mysql://db:3306/mydb";
     private static final String DB_USER = "root";
-    private static final String DB_PASS;
+    private static String DB_PASS = "";
 
-    public void setDB_PASS(pass){
-        this.DB_PASS = finalPassword(pass);
+    private static void setDB_PASS(String pass) {
+        if(pass != null && !pass.isEmpty()) {
+            DB_PASS = DB_pass.finalPassword(pass);
+        } 
+        else {
+            DB_PASS = "PERMISSION DENIED!";
+        }
     }
 
     static class WebSocketHandler extends WebSocketServer {
@@ -356,10 +360,16 @@ public class SimpleRestApi {
     }
 
     public static void main(String[] args) throws Exception {
-        Scanner scan = new Scanner(System.in);
-        System.out.println("PUT IN THE PASSWORD TO ACCESS THE DB!")
-        String pass = scan.nextLine();
+        scanner = new Scanner(System.in);
+        System.out.print("Enter password to access DB: ");
+        String pass = scanner.nextLine();
+
         setDB_PASS(pass);
+
+        if ("PERMISSION DENIED!".equals(DB_PASS)) {
+            throw new IllegalStateException("Could not resolve DB password from native library");
+        }
+
         System.out.println("Starting HTTP...");
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
         httpServer.createContext("/users", new UserHandler());

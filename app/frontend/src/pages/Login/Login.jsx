@@ -11,11 +11,17 @@ export default function Login() {
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(""); // ✅ new error state
 
+  const getWebSocketUrl = () => {
+    if (window.location.hostname === "localhost") {
+      return "ws://localhost:8081";
+    }
+
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    return `${protocol}://${window.location.host}/ws/`;
+  };
+
   useEffect(() => {
-    // ✅ New
-    const ws = new WebSocket(
-      `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/`
-      );
+    const ws = new WebSocket(getWebSocketUrl());
 
     ws.onopen = () => {
       console.log("WebSocket connected for login");

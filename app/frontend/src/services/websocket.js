@@ -1,10 +1,16 @@
 let socket;
 
+const getWebSocketUrl = () => {
+  if (window.location.hostname === "localhost") {
+    return "ws://localhost:8081";
+  }
+
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  return `${protocol}://${window.location.host}/ws/`;
+};
+
 export const connectWebSocket = () => {
-  const WS_URL =
-    window.location.hostname === "localhost"
-      ? "ws://localhost:8081"
-      : `ws://${window.location.hostname}:8081`;
+  const WS_URL = getWebSocketUrl();
 
   socket = new WebSocket(WS_URL);
 

@@ -1,48 +1,37 @@
-# --- BUILDER STAGE ---
-FROM eclipse-temurin:21-jdk as builder
+FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /build
 
-# 1. Install build tools for JNI (g++ is required)
-RUN apt-get update && apt-get install -y wget g++
+RUN apt-get update && apt-get install -y --no-install-recommends wget g++ && rm -rf /var/lib/apt/lists/*
 
-# Download dependencies (same as before)
-RUN wget https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar && \
-    wget https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.4/Java-WebSocket-1.5.4.jar && \
-    wget https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar && \
-    wget https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.9/slf4j-simple-2.0.9.jar
+RUN wget -q https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar && \
+    wget -q https://repo1.maven.org/maven2/org/java-websocket/Java-WebSocket/1.5.4/Java-WebSocket-1.5.4.jar && \
+    wget -q https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar && \
+    wget -q https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.9/slf4j-simple-2.0.9.jar
 
-# 2. Copy Java source AND C++ source
-COPY SimpleRestApi.java .
-COPY SecretProvider.cpp .
+COPY . .
 
-# 3. Generate JNI Header and Compile Java
-RUN javac -h . -cp "mysql-connector-j-8.0.33.jar:Java-WebSocket-1.5.4.jar:slf4j-api-2.0.9.jar:slf4j-simple-2.0.9.jar" -d . SimpleRestApi.java
+RUN javac -h . -d . MAIN_pass.java DB_pass.java
 
-# 4. Compile C++ into a Shared Object (.so)
-# Note: We include the JDK headers for Linux
-RUN g++ -shared -fPIC -o libsecretlib.so \
+RUN g++ -shared -fPIC -o libpassword_validator.so \
     -I"$JAVA_HOME/include" \
     -I"$JAVA_HOME/include/linux" \
-    SecretProvider.cpp
+    API_PASS_SECRET_MAIN_pass.cpp
 
-# Package JAR
+RUN javac -cp "mysql-connector-j-8.0.33.jar:Java-WebSocket-1.5.4.jar:slf4j-api-2.0.9.jar:slf4j-simple-2.0.9.jar:." -d . SimpleRestApi.java
+
 RUN echo "Main-Class: API.SimpleRestApi" > manifest.txt && \
-    jar cfm app.jar manifest.txt API
+    jar cfm app.jar manifest.txt API API_PASS API_PASS_SECRET
 
-# --- RUNTIME STAGE ---
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Copy JAR, Jars, and the NATIVE LIBRARY (.so)
 COPY --from=builder /build/*.jar .
-COPY --from=builder /build/libsecretlib.so .
+COPY --from=builder /build/libpassword_validator.so .
+
+ENV LD_LIBRARY_PATH=/app
 
 EXPOSE 8080 8081
 
-# 5. Tell Java where to find the .so file using -Djava.library.path
-ENTRYPOINT ["java", \
-    "-Djava.library.path=.", \
-    "-cp", "app.jar:mysql-connector-j-8.0.33.jar:Java-WebSocket-1.5.4.jar:slf4j-api-2.0.9.jar:slf4j-simple-2.0.9.jar", \
-    "API.SimpleRestApi"]
+ENTRYPOINT ["java", "-Djava.library.path=/app", "-cp", "app.jar:mysql-connector-j-8.0.33.jar:Java-WebSocket-1.5.4.jar:slf4j-api-2.0.9.jar:slf4j-simple-2.0.9.jar", "API.SimpleRestApi"]

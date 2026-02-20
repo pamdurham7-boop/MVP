@@ -44,10 +44,9 @@ services:
     image: mysql:8.0
     container_name: mysql_db
     restart: always
-    env_file:
-      - password.env
     environment:
       MYSQL_DATABASE: mydb
+      MYSQL_ROOT_PASSWORD: R3hfTUgRng3D_5w3CReT_P4sS*
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql

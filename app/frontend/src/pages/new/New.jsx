@@ -13,12 +13,17 @@ export default function New() {
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(""); // ✅ error state
 
+  const getWebSocketUrl = () => {
+    if (window.location.hostname === "localhost") {
+      return "ws://localhost:8081";
+    }
+
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    return `${protocol}://${window.location.host}/ws/`;
+  };
+
   useEffect(() => {
-    const ws = new WebSocket(
-      window.location.hostname === "localhost"
-        ? "ws://localhost:8081"
-        : `ws://${window.location.hostname}:8081`
-    );
+    const ws = new WebSocket(getWebSocketUrl());
 
     ws.onopen = () => {
       console.log("WebSocket connected for registration");
